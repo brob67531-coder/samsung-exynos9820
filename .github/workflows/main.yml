@@ -75,7 +75,6 @@ jobs:
                        +io_bfq                   \
                        +tcp_westwood             \
                        +performance              \
-                       +apatch                   \
                        +graphite                 \
                        +polly                    \
                        +lto                      \
