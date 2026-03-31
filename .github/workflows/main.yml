@@ -1,10 +1,12 @@
 name: Build
 
-on: [push]
-
+on: 
+  push:
+  workflow_dispatch:
+  
 env:
   TOOLCHAIN: cruel
-  INSTALLER: yes
+  INSTALLER: no
 
 jobs:
   build:
@@ -13,11 +15,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        model: [ "G970F,G973F,G975F", "N975F" ]
+        model: [ "G977N" ]
 
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.7'
 
@@ -41,7 +43,7 @@ jobs:
         run: echo "::set-output name=KEY::$( echo ${{ matrix.model }} | tr ',' '_' )"
 
       - name: Cache ccache files
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.ccache
           key: ccache-${{ env.TOOLCHAIN }}-${{ steps.ccache_model_key.outputs.KEY }}-${{ steps.ccache_timestamp.outputs.FULL_DATE }}
@@ -55,9 +57,9 @@ jobs:
           set -e -o pipefail
           ./cruelbuild config                    \
                        model=${{ matrix.model }} \
-                       name="Cruel-devel"        \
+                       name="trainwreck"         \
                        toolchain=$TOOLCHAIN      \
-                       +magisk                   \
+                       -magisk                   \
                        +nohardening              \
                        +ttl                      \
                        +wireguard                \
@@ -67,6 +69,17 @@ jobs:
                        +force_dex_wqhd           \
                        +morosound                \
                        +boeffla_wl_blocker       \
+                       +noatime                  \
+                       +dtb                      \
+                       -fp_boost                 \
+                       +io_bfq                   \
+                       +tcp_westwood             \
+                       +performance              \
+                       +apatch                   \
+                       +graphite                 \
+                       +polly                    \
+                       +lto                      \
+                       +tcp_window_64k           \
           2>&1 | tee config.info
 
       - name: Install gcc-aarch64-linux-gnu
@@ -116,21 +129,21 @@ jobs:
           unzip ../CruelKernel.zip
       - name: Upload Kernel Zip
         if: env.INSTALLER == 'yes'
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: CruelKernel-${{ matrix.model }}
           path: installer/*
           if-no-files-found: error
       - name: Upload Kernel Images
         if: env.INSTALLER != 'yes'
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: CruelKernel-${{ matrix.model }}
           path: '*.img'
           if-no-files-found: error
 
       - name: Upload Kernel Info
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: ConfigurationInfo-${{ matrix.model }}
           path: config.*
